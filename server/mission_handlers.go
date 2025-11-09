@@ -32,11 +32,19 @@ func (s *Server) HandleMissions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var assigned *uint
-		if req.AsignadoAID != nil {
-			v := uint(*req.AsignadoAID)
+		assignedInput := req.AsignadoAID
+		if assignedInput == nil {
+			assignedInput = req.LegacyAsignadoAID
+		}
+		if assignedInput != nil {
+			v := uint(*assignedInput)
 			assigned = &v
 		}
-		m := &models.Mission{Title: req.Titulo, Description: req.Descripcion, Status: req.Estado, AssignedToID: assigned}
+		status := "PENDING"
+		if req.Estado != nil && *req.Estado != "" {
+			status = *req.Estado
+		}
+		m := &models.Mission{Title: req.Titulo, Description: req.Descripcion, Status: status, AssignedToID: assigned}
 		if _, err := s.MissionRepository.Save(m); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -80,9 +88,15 @@ func (s *Server) HandleMissionsWithId(w http.ResponseWriter, r *http.Request) {
 		}
 		m.Title = req.Titulo
 		m.Description = req.Descripcion
-		m.Status = req.Estado
-		if req.AsignadoAID != nil {
-			v := uint(*req.AsignadoAID)
+		if req.Estado != nil && *req.Estado != "" {
+			m.Status = *req.Estado
+		}
+		assignedInput := req.AsignadoAID
+		if assignedInput == nil {
+			assignedInput = req.LegacyAsignadoAID
+		}
+		if assignedInput != nil {
+			v := uint(*assignedInput)
 			m.AssignedToID = &v
 		} else {
 			m.AssignedToID = nil

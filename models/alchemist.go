@@ -23,6 +23,7 @@ func (a *Alchemist) ToResponseDto() *api.AlchemistResponseDto {
 
 	return &api.AlchemistResponseDto{
 		ID:            int(a.ID),
+		LegacyID:      int(a.ID),
 		Nombre:        a.Name,
 		Edad:          a.Age,
 		Email:         email,

@@ -9,7 +9,8 @@ type AlchemistRequestDto struct {
 }
 
 type AlchemistResponseDto struct {
-	ID            int    `json:"alchemist_id"`
+	ID            int    `json:"id"`
+	LegacyID      int    `json:"alchemist_id,omitempty"`
 	Nombre        string `json:"name"`
 	Edad          int    `json:"age"`
 	Email         string `json:"email"`

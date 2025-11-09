@@ -125,8 +125,8 @@ export default function AlchemistsPage() {
           </thead>
           <tbody>
             {list.length ? (
-              list.map((a) => (
-                <tr key={a.id}>
+              list.map((a, idx) => (
+                <tr key={a.id ?? `alch-${idx}`}>
                   <td>{a.id}</td>
                   <td>{a.name}</td>
                   <td>{a.specialty}</td>

@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend-avanzada/api"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func (t *Transmutation) ToResponseDto(includeAlchemist bool) *api.TransmutationR
 		AlchemistID: int(t.AlchemistID),
 		Description: t.Description,
 		Status:      t.Status,
-		CreatedAt:   t.CreatedAt.String(),
+		CreatedAt:   t.CreatedAt.Format(time.RFC3339),
 	}
 	if includeAlchemist && t.Alchemist != nil {
 		dto.Alchemist = t.Alchemist.ToResponseDto() // ajusta al nombre real de tu método

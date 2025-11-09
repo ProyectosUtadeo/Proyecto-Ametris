@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -64,7 +65,14 @@ func (s *Server) handleStartTransmutation(w http.ResponseWriter, r *http.Request
 	}
 
 	vars := mux.Vars(r)
-	idStr := vars["id"]
+	idStr := vars["alchemist_id"]
+	if idStr == "" {
+		idStr = vars["id"]
+	}
+	if strings.TrimSpace(idStr) == "" {
+		s.HandleError(w, http.StatusBadRequest, r.URL.Path, fmt.Errorf("missing alchemist id in path"))
+		return
+	}
 	alchemistID, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		s.HandleError(w, http.StatusBadRequest, r.URL.Path, err)
@@ -97,10 +105,10 @@ func (s *Server) handleStartTransmutation(w http.ResponseWriter, r *http.Request
 
 	// Duración: reutilizamos los tiempos existentes de config (como en Kill)
 	var duration time.Duration
-	if req.Description == "" {
-		duration = time.Duration(s.Config.KillDuration) * time.Second
+	if strings.TrimSpace(req.Description) == "" {
+		duration = time.Duration(s.Config.TransmutationDuration) * time.Second
 	} else {
-		duration = time.Duration(s.Config.KillDurationWithDescription) * time.Second
+		duration = time.Duration(s.Config.TransmutationDurationHigh) * time.Second
 	}
 
 	// Tarea asíncrona: al terminar, marca COMPLETED
@@ -116,10 +124,7 @@ func (s *Server) handleStartTransmutation(w http.ResponseWriter, r *http.Request
 	s.taskQueue.StartTask(int(alch.ID), duration, task, nil)
 
 	// Respuesta al cliente
-	resp := &api.TransmutationTaskResponseDto{
-		Alchemist: alch.ToResponseDto(),
-		Status:    "Started",
-	}
+	resp := saved.ToResponseDto(false)
 	js, err := json.Marshal(resp)
 	if err != nil {
 		s.HandleError(w, http.StatusInternalServerError, r.URL.Path, err)

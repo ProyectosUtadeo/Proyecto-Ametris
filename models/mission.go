@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend-avanzada/api"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -21,11 +22,16 @@ func (m *Mission) ToResponseDto() *api.MissionResponseDto {
 		v := int(*m.AssignedToID)
 		assigned = &v
 	}
-	return &api.MissionResponseDto{
-		ID:          int(m.ID),
-		Titulo:      m.Title,
-		Descripcion: m.Description,
-		Estado:      m.Status,
-		AsignadoAID: assigned,
+	dto := &api.MissionResponseDto{
+		ID:                int(m.ID),
+		Titulo:            m.Title,
+		Descripcion:       m.Description,
+		Estado:            m.Status,
+		AsignadoAID:       assigned,
+		LegacyAsignadoAID: assigned,
 	}
+	if !m.CreatedAt.IsZero() {
+		dto.CreadoEn = m.CreatedAt.Format(time.RFC3339)
+	}
+	return dto
 }
