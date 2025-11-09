@@ -53,7 +53,7 @@ export default function TransmutationsPage() {
             ))}
         </select>
 
-        <input
+      <input
           style={{ flex: 1 }}
           placeholder="Description"
           value={desc}
@@ -77,7 +77,7 @@ export default function TransmutationsPage() {
             list.map(t => (
               <tr key={`trm-${t.id}`}>
                 <td>{t.id}</td>
-                <td>{getAlchName(t.alchemist_id)}</td>
+                <td>{t.alchemist?.name ?? getAlchName(t.alchemist_id)}</td>
                 <td>{t.description}</td>
                 <td>{t.status}</td>
                 <td>{t.created_at ? new Date(t.created_at).toLocaleString() : "-"}</td>

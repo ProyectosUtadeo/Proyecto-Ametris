@@ -10,6 +10,11 @@ func (s *Server) router() http.Handler {
 	router := mux.NewRouter()
 	router.Use(s.logger.RequestLogger)
 
+	// 🔓 Rutas públicas de autenticación (JWT)
+	// No requieren token: usadas para registrar y obtener el token.
+	router.HandleFunc("/auth/register", s.HandleRegister).Methods(http.MethodPost)
+	router.HandleFunc("/auth/login", s.HandleLogin).Methods(http.MethodPost)
+
 	// NUEVAS RUTAS (Amestris)
 	router.HandleFunc("/alchemists", s.HandleAlchemists).Methods(http.MethodGet, http.MethodPost)
 	router.HandleFunc("/alchemists/{id}", s.HandleAlchemistsWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
@@ -20,9 +25,8 @@ func (s *Server) router() http.Handler {
 	router.HandleFunc("/missions", s.HandleMissions).Methods(http.MethodGet, http.MethodPost)
 	router.HandleFunc("/missions/{id}", s.HandleMissionsWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
 
-	router.HandleFunc("/transmutations", s.HandleTransmutations).Methods(http.MethodGet)
-	router.HandleFunc("/transmutations/{alchemist_id}", s.HandleTransmutationsWithId).Methods(http.MethodPost)
-	router.HandleFunc("/transmutations/{id}", s.HandleTransmutationsWithId).Methods(http.MethodPost)
+	router.HandleFunc("/transmutations", s.HandleTransmutations).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/transmutations/{id}", s.HandleTransmutationsWithId).Methods(http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete)
 
 	router.HandleFunc("/audits", s.HandleAudits).Methods(http.MethodGet)
 

@@ -36,6 +36,7 @@ export interface Transmutation {
   description: string;
   status: string;
   created_at?: string;
+  alchemist?: Alchemist;
 }
 
 export interface Audit {
@@ -52,12 +53,19 @@ export interface Audit {
 
 const BASE = "http://localhost:8000";
 
+// 👇 NUEVO: util para leer el token (sin romper nada del resto)
+function getToken() {
+  return localStorage.getItem("jwt") || "";
+}
+
 async function http<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       ...(init?.headers || {}),
+      // 👇 NUEVO: agrega Authorization si hay JWT
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
     },
   });
 
@@ -73,6 +81,28 @@ async function http<T>(url: string, init?: RequestInit): Promise<T> {
   } catch {
     return {} as T;
   }
+}
+
+// ======================
+// 🔐 Auth (NUEVO)
+// ======================
+
+export interface AuthResponse {
+  token: string;
+}
+
+export function login(email: string, password: string) {
+  return http<AuthResponse>(`${BASE}/auth/login`, {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function register(email: string, password: string, role: "ALCHEMIST" | "SUPERVISOR", alchemist_id?: number) {
+  return http<AuthResponse>(`${BASE}/auth/register`, {
+    method: "POST",
+    body: JSON.stringify({ email, password, role, alchemist_id }),
+  });
 }
 
 // ======================
@@ -107,7 +137,13 @@ export const updateAlchemist = (id: number, data: Partial<Omit<Alchemist, "id">>
 };
 
 export const deleteAlchemist = (id: number) =>
-  fetch(`${BASE}/alchemists/${id}`, { method: "DELETE" }).then(() => undefined);
+  fetch(`${BASE}/alchemists/${id}`, {
+    method: "DELETE",
+    headers: {
+      // 👇 asegúrate de enviar también el token en deletes directos
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+  }).then(() => undefined);
 
 // ======================
 // 🧱 Materials
@@ -128,7 +164,12 @@ export const updateMaterial = (id: number, data: Partial<Material>) =>
   });
 
 export const deleteMaterial = (id: number) =>
-  fetch(`${BASE}/materials/${id}`, { method: "DELETE" }).then(() => undefined);
+  fetch(`${BASE}/materials/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+  }).then(() => undefined);
 
 // ======================
 // 🧭 Missions
@@ -149,7 +190,12 @@ export const updateMission = (id: number, data: Partial<Mission>) =>
   });
 
 export const deleteMission = (id: number) =>
-  fetch(`${BASE}/missions/${id}`, { method: "DELETE" }).then(() => undefined);
+  fetch(`${BASE}/missions/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+  }).then(() => undefined);
 
 // ======================
 // 🔮 Transmutations
@@ -161,8 +207,20 @@ export const getTransmutations = () => http<Transmutation[]>(`${BASE}/transmutat
 export const startTransmutation = (alchemistId: number, description: string) =>
   http<Transmutation>(`${BASE}/transmutations/${alchemistId}`, {
     method: "POST",
-    body: JSON.stringify({ description }),
+    body: JSON.stringify({ description, alchemist_id: alchemistId }),
   });
+
+export const getTransmutation = (id: number) =>
+  http<Transmutation>(`${BASE}/transmutations/${id}`);
+
+export const updateTransmutationStatus = (id: number, status: string) =>
+  http<Transmutation>(`${BASE}/transmutations/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+
+export const cancelTransmutation = (id: number) =>
+  http<Transmutation>(`${BASE}/transmutations/${id}`, { method: "DELETE" });
 
 // ======================
 // 🧾 Audits

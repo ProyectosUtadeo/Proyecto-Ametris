@@ -2,6 +2,8 @@ package api
 
 type TransmutationRequestDto struct {
 	Description string `json:"description"`
+	Status      string `json:"status,omitempty"`
+	AlchemistID *int   `json:"alchemist_id,omitempty"`
 }
 
 type TransmutationResponseDto struct {

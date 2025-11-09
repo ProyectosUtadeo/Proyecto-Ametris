@@ -32,6 +32,9 @@ type Server struct {
 	TransmutationRepository *repository.TransmutationRepository
 	AuditRepository         *repository.AuditRepository
 
+	// 👇👇👇 NUEVO
+	UserRepository *repository.UserRepository
+
 	logger    *logger.Logger
 	taskQueue *TaskQueue
 }
@@ -62,7 +65,7 @@ func (s *Server) StartServer() {
 	corsObj := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"}),
+		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 	)
 
 	fmt.Println("🧩 Inicializando rutas (mux)...")
@@ -88,11 +91,18 @@ func (s *Server) initDB() {
 
 	case "postgres":
 		// Usa variables del .env seteadas en docker-compose
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-			os.Getenv("POSTGRES_HOST"),
-			os.Getenv("POSTGRES_USER"),
-			os.Getenv("POSTGRES_PASSWORD"),
-			os.Getenv("POSTGRES_DB"),
+		host := os.Getenv("POSTGRES_HOST")
+		user := os.Getenv("POSTGRES_USER")
+		pass := os.Getenv("POSTGRES_PASSWORD")
+		dbn := os.Getenv("POSTGRES_DB")
+		port := os.Getenv("POSTGRES_PORT")
+		if port == "" {
+			port = "5432" // valor por defecto
+		}
+
+		dsn := fmt.Sprintf(
+			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
+			host, user, pass, dbn, port,
 		)
 		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
