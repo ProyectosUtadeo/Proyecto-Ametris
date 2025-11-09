@@ -1,35 +1,55 @@
 // src/Layout.tsx
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
+import { useAuth } from "./auth";
 
 export default function Layout() {
-  const loc = useLocation();
-  const Tab = ({ to, label }: { to: string; label: string }) => (
-    <Link
-      to={to}
-      style={{
-        padding: "6px 10px",
-        borderRadius: 6,
-        border: "1px solid #ddd",
-        background: loc.pathname === to ? "#222" : "#f6f6f6",
-        color: loc.pathname === to ? "#fff" : "#222",
-        textDecoration: "none",
-        fontSize: 14,
-      }}
-    >
-      {label}
-    </Link>
-  );
+  const { user, logout } = useAuth();
+
   return (
-    <div>
-      <div style={{ display: "flex", gap: 12, padding: 12, borderBottom: "1px solid #eee" }}>
-        <Tab to="/" label="Dashboard" />
-        <Tab to="/alchemists" label="Alchemists" />
-        <Tab to="/materials" label="Materials" />
-        <Tab to="/missions" label="Missions" />
-        <Tab to="/transmutations" label="Transmutations" />
-        <Tab to="/audits" label="Audits" />
-      </div>
-      <Outlet />
+    <div style={{ display: "flex", height: "100vh" }}>
+      <aside
+        style={{
+          width: 200,
+          background: "#222",
+          color: "#fff",
+          padding: 16,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
+      >
+        <nav style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <Link to="/" style={{ color: "#fff" }}>Dashboard</Link>
+          <Link to="/alchemists" style={{ color: "#fff" }}>Alchemists</Link>
+          <Link to="/materials" style={{ color: "#fff" }}>Materials</Link>
+          <Link to="/missions" style={{ color: "#fff" }}>Missions</Link>
+          <Link to="/transmutations" style={{ color: "#fff" }}>Transmutations</Link>
+
+          {/* 🔒 Solo visible para SUPERVISOR */}
+          {user?.role === "SUPERVISOR" && (
+            <Link to="/audits" style={{ color: "#fff" }}>Audits</Link>
+          )}
+        </nav>
+
+        <button
+          onClick={logout}
+          style={{
+            marginTop: 20,
+            background: "crimson",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: 6,
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          Cerrar sesión
+        </button>
+      </aside>
+
+      <main style={{ flex: 1, padding: 24, overflowY: "auto" }}>
+        <Outlet />
+      </main>
     </div>
   );
 }

@@ -9,22 +9,20 @@ import TransmutationsPage from "./pages/TransmutationsPage";
 import AuditsPage from "./pages/AuditsPage";
 import RegisterPage from "./pages/RegisterPage";
 
-
-import LoginPage from "./pages/LoginPage";           // 👈 nuevo
+import LoginPage from "./pages/LoginPage";            // 👈 nuevo
 import { PrivateRoute, RoleRoute } from "./routeGuards"; // 👈 nuevo
-import { AuthProvider } from "./auth";               // 👈 nuevo
+import { AuthProvider } from "./auth";                // 👈 nuevo
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Ruta pública para login */}
-          
+          {/* 🔓 Rutas públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Todo lo demás protegido por JWT */}
+          {/* 🔒 Área protegida (requiere token JWT) */}
           <Route
             element={
               <PrivateRoute>
@@ -32,24 +30,24 @@ export default function App() {
               </PrivateRoute>
             }
           >
+            {/* 📊 Dashboard común */}
             <Route path="/" element={<Dashboard />} />
+
+            {/* 🧙‍♂️ Secciones accesibles para ambos roles */}
             <Route path="/alchemists" element={<AlchemistsPage />} />
             <Route path="/materials" element={<MaterialsPage />} />
             <Route path="/missions" element={<MissionsPage />} />
             <Route path="/transmutations" element={<TransmutationsPage />} />
 
-            {/* Si quieres proteger /audits solo para SUPERVISOR, descomenta: */}
-            {/* <Route
+            {/* 🧾 Solo SUPERVISOR */}
+            <Route
               path="/audits"
               element={
                 <RoleRoute role="SUPERVISOR">
                   <AuditsPage />
                 </RoleRoute>
               }
-            /> */}
-
-            {/* Por ahora lo dejamos abierto dentro del área autenticada */}
-            <Route path="/audits" element={<AuditsPage />} />
+            />
           </Route>
         </Routes>
       </AuthProvider>

@@ -1,9 +1,13 @@
-// src/pages/Dashboard.tsx
+import { useAuth } from "../auth";
+import DashboardAlchemist from "./DashboardAlchemist";
+import DashboardSupervisor from "./DashboardSupervisor";
+
 export default function Dashboard() {
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Dashboard</h2>
-      <p>Bienvenido a Amestris Admin. Usa el menú para navegar.</p>
-    </div>
-  );
+  const { user } = useAuth();
+
+  if (user?.role === "SUPERVISOR") {
+    return <DashboardSupervisor />;
+  }
+  // por defecto, Alchemist
+  return <DashboardAlchemist />;
 }

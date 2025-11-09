@@ -126,6 +126,7 @@ func (s *Server) initDB() {
 		&models.Mission{},
 		&models.Transmutation{},
 		&models.Audit{},
+		&models.User{},
 	); err != nil {
 		s.logger.Fatal(err)
 	}
@@ -141,6 +142,7 @@ func (s *Server) initDB() {
 	s.MissionRepository = repository.NewMissionRepository(s.DB)
 	s.TransmutationRepository = repository.NewTransmutationRepository(s.DB)
 	s.AuditRepository = repository.NewAuditRepository(s.DB)
+	s.UserRepository = repository.NewUserRepository(s.DB)
 
 	fmt.Println("✅ Base de datos y repositorios inicializados correctamente.")
 }

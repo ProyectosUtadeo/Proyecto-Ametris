@@ -1,17 +1,31 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { clearToken, decodeRole, getToken } from "./services/session";
 
-type User = { role: "ALCHEMIST" | "SUPERVISOR" } | null;
+// 🔧 Tipo extendido de usuario
+export type User = {
+  role: "ALCHEMIST" | "SUPERVISOR";
+  email?: string;   // 👈 ahora puedes acceder a user.email sin error
+  id?: number;
+  token?: string;
+} | null;
 
-const Ctx = createContext<{ user: User; logout: () => void }>({ user: null, logout: () => {} } as any);
+// Contexto global
+const Ctx = createContext<{ user: User; logout: () => void }>({
+  user: null,
+  logout: () => {},
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
 
   useEffect(() => {
-    if (getToken()) {
+    const token = getToken();
+    if (token) {
       const role = decodeRole();
-      if (role) setUser({ role });
+      // Si luego incluyes email o id en el JWT, los puedes decodificar aquí también
+      if (role) {
+        setUser({ role, token });
+      }
     }
   }, []);
 
@@ -21,7 +35,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
-  return <Ctx.Provider value={{ user, logout }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ user, logout }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export const useAuth = () => useContext(Ctx);
