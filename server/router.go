@@ -1,0 +1,38 @@
+package server
+
+import (
+	"net/http"
+
+	"github.com/gorilla/mux"
+)
+
+func (s *Server) router() http.Handler {
+	router := mux.NewRouter()
+	router.Use(s.logger.RequestLogger)
+
+	// NUEVAS RUTAS (Amestris)
+	router.HandleFunc("/alchemists", s.HandleAlchemists).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/alchemists/{id}", s.HandleAlchemistsWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+
+	router.HandleFunc("/materials", s.HandleMaterials).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/materials/{id}", s.HandleMaterialsWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+
+	router.HandleFunc("/missions", s.HandleMissions).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/missions/{id}", s.HandleMissionsWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+
+	router.HandleFunc("/transmutations", s.HandleTransmutations).Methods(http.MethodGet)
+	router.HandleFunc("/transmutations/{alchemist_id}", s.HandleTransmutations).Methods(http.MethodPost)
+
+	router.HandleFunc("/audits", s.HandleAudits).Methods(http.MethodGet)
+
+	router.HandleFunc("/transmutations", s.HandleTransmutations).Methods(http.MethodGet)
+	router.HandleFunc("/transmutations/{id}", s.HandleTransmutationsWithId).Methods(http.MethodPost)
+
+	// Legacy que ya tenías
+	router.HandleFunc("/people", s.HandlePeople).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/people/{id}", s.HandlePeopleWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)
+	router.HandleFunc("/kills", s.HandleKills).Methods(http.MethodGet)
+	router.HandleFunc("/kills/{id}", s.HandleKillsWithId).Methods(http.MethodPost)
+
+	return router
+}
