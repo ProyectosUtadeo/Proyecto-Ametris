@@ -35,6 +35,9 @@ type Server struct {
 	// 👇👇👇 NUEVO
 	UserRepository *repository.UserRepository
 
+	// 👇👇👇 NUEVO: Hub de WebSocket para notificaciones en tiempo real
+	WsHub *Hub
+
 	logger    *logger.Logger
 	taskQueue *TaskQueue
 }
@@ -60,6 +63,10 @@ func NewServer() *Server {
 func (s *Server) StartServer() {
 	fmt.Println("🔧 Inicializando base de datos...")
 	s.initDB()
+
+	// 👇👇👇 NUEVO: inicializar y ejecutar el hub de WebSocket
+	s.WsHub = NewHub()
+	go s.WsHub.Run()
 
 	fmt.Println("🌐 Configurando CORS...")
 	corsObj := handlers.CORS(

@@ -30,6 +30,8 @@ func (s *Server) router() http.Handler {
 
 	router.HandleFunc("/audits", s.HandleAudits).Methods(http.MethodGet)
 
+	router.HandleFunc("/ws", s.HandleWS).Methods(http.MethodGet)
+
 	// Legacy que ya tenías
 	router.HandleFunc("/people", s.HandlePeople).Methods(http.MethodGet, http.MethodPost)
 	router.HandleFunc("/people/{id}", s.HandlePeopleWithId).Methods(http.MethodGet, http.MethodPut, http.MethodDelete)

@@ -163,12 +163,27 @@ func (s *Server) startTransmutation(alchemistID int, description string) (*model
 		_ = s.TransmutationRepository.Delete(saved)
 		return nil, err
 	}
+
+	// 🔔 WS: notificar inicio
+	if s.WsHub != nil {
+		_ = s.notify("transmutation:started", saved.ToResponseDto(true))
+	}
+
 	duration := s.transmutationDuration(desc)
 	task := func(_ *models.Kill) error {
 		if err := s.TransmutationRepository.UpdateStatus(saved.ID, "COMPLETED"); err != nil {
 			return err
 		}
-		return s.createTransmutationAudit("TRANSMUTATION_COMPLETED", saved.ID, fmt.Sprintf("Transmutación #%d completada para %s", saved.ID, alch.Name))
+		if err := s.createTransmutationAudit("TRANSMUTATION_COMPLETED", saved.ID, fmt.Sprintf("Transmutación #%d completada para %s", saved.ID, alch.Name)); err != nil {
+			return err
+		}
+		// 🔔 WS: notificar completada (cargar DTO actualizado para enviar con alchemist)
+		if s.WsHub != nil {
+			if updated, e := s.TransmutationRepository.FindById(int(saved.ID)); e == nil && updated != nil {
+				_ = s.notify("transmutation:completed", updated.ToResponseDto(true))
+			}
+		}
+		return nil
 	}
 	s.taskQueue.StartTask(int(alch.ID), duration, task, nil)
 	return saved, nil
@@ -257,6 +272,12 @@ func (s *Server) handleUpdateTransmutationStatus(w http.ResponseWriter, r *http.
 		s.HandleError(w, http.StatusInternalServerError, r.URL.Path, err)
 		return
 	}
+
+	// 🔔 WS: notificar actualización de estado
+	if s.WsHub != nil {
+		_ = s.notify("transmutation:updated", t.ToResponseDto(true))
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(t.ToResponseDto(true)); err != nil {
 		s.HandleError(w, http.StatusInternalServerError, r.URL.Path, err)
@@ -298,6 +319,12 @@ func (s *Server) handleCancelTransmutation(w http.ResponseWriter, r *http.Reques
 		s.HandleError(w, http.StatusInternalServerError, r.URL.Path, err)
 		return
 	}
+
+	// 🔔 WS: notificar cancelación
+	if s.WsHub != nil {
+		_ = s.notify("transmutation:cancelled", t.ToResponseDto(true))
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(t.ToResponseDto(true)); err != nil {
 		s.HandleError(w, http.StatusInternalServerError, r.URL.Path, err)
